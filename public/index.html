@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+    <style>
+        body{
+            width:700px;
+            margin:auto;
+            font-family:Arial;
+        }
+
+        .product{
+            border:1px solid #ccc;
+            margin:10px 0;
+            padding:15px;
+        }
+
+        button{
+            padding:10px 20px;
+            margin-right:10px;
+        }
+
+        select{
+            padding:10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Products</h1>
+
+<select id="category">
+    <option value="1">Electronics</option>
+    <option value="2">Fashion</option>
+    <option value="3">Books</option>
+    <option value="4">Sports</option>
+</select>
+
+<button id="searchBtn">
+    Search
+</button>
+
+<hr>
+
+<div id="products"></div>
+<input
+        type="text"
+        id="cursorInput"
+        placeholder="Enter cursor">
+<select id="directionInput">
+    <option value="next">next</option>
+    <option value="prev">prev</option>
+</select>
+<button id="testCursorBtn">
+    Test Cursor
+</button>
+<button id="prevBtn">
+    Previous
+</button>
+
+<button id="nextBtn">
+    Next
+</button>
+
+<script>
+    let currentCategory = 1;
+    let nextCursor = null;
+    let prevCursor = null;
+
+    async function fetchProducts(cursor = null, direction = "next") {
+
+        let url = `http://localhost:3000/products?category=${currentCategory}`;
+
+        if (cursor) {
+            url += `&cursor=${cursor}&direction=${direction}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("fetchProducts called", cursor, direction);
+        document.getElementById("products").innerHTML = "";
+
+        data.products.forEach(product => {
+
+            const div = document.createElement("div");
+
+            div.className = "product";
+
+            div.innerHTML = `
+            <h3>${product.name}</h3>
+            <p>${new Date(product.createdAt).toLocaleString()}</p>
+            <p>${product.price}</p>
+        `;
+
+            document
+                .getElementById("products")
+                .appendChild(div);
+        });
+
+        nextCursor = data.nextCursor;
+        prevCursor = data.prevCursor;
+
+        document.getElementById("nextBtn").disabled = !data.hasNext;
+        document.getElementById("prevBtn").disabled = !data.hasPrev;
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+
+            currentCategory = document.getElementById("category").value;
+
+            currentCursor = null;
+            nextCursor = null;
+            cursorHistory = [];
+
+            fetchProducts();
+    });
+
+    document.getElementById("category").addEventListener("change", () => {
+
+        currentCategory = document.getElementById("category").value;
+
+        nextCursor = null;
+        prevCursor = null;
+
+        fetchProducts();
+
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+
+        if (nextCursor) {
+            fetchProducts(nextCursor, "next");
+        }
+
+    });
+    document.getElementById("prevBtn").addEventListener("click", () => {
+
+        if (prevCursor) {
+            fetchProducts(prevCursor, "prev");
+        }
+
+    });
+    document.getElementById("testCursorBtn").addEventListener("click", () => {
+
+        const cursor = document.getElementById("cursorInput").value.trim();
+        const direction = document.getElementById("directionInput").value;
+
+        fetchProducts(cursor || null, direction);
+
+    });
+
+</script>
+
+</body>
+</html>
