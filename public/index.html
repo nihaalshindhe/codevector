@@ -59,7 +59,7 @@
 
     async function fetchProducts(cursor = null, direction = "next") {
 
-        let url = `http://localhost:3000/products?category=${currentCategory}`;
+        let url = `https://codevector-qr9y.onrender.com/products?category=${currentCategory}`;
 
         if (cursor) {
             url += `&cursor=${cursor}&direction=${direction}`;

@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(morgan(":method :url :status :response-time ms "));
 
-app.use(express.static(path.join(__dirname, "public")));
+
 
 app.use("/products", productsRoute);
 
