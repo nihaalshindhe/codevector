@@ -67,7 +67,7 @@
 
         const response = await fetch(url);
         const data = await response.json();
-        console.log("fetchProducts called", cursor, direction);
+
         document.getElementById("products").innerHTML = "";
 
         data.products.forEach(product => {
@@ -100,7 +100,7 @@
 
             currentCursor = null;
             nextCursor = null;
-            cursorHistory = [];
+
 
             fetchProducts();
     });
