@@ -20,7 +20,26 @@ const validateProducts = [
 
     query("cursor")
         .optional()
-        .custom((value) => mongoose.Types.ObjectId.isValid(value))
+        .custom((value, { req }) => {
+            try {
+                const cursorData = JSON.parse(
+                    Buffer.from(value, "base64").toString()
+                );
+
+                if (
+                    isNaN(new Date(cursorData.createdAt)) ||
+                    !mongoose.Types.ObjectId.isValid(cursorData.id)
+                ) {
+                    return false;
+                }
+
+                req.cursorData = cursorData;
+
+                return true;
+            } catch {
+                return false;
+            }
+        })
         .withMessage("Invalid cursor"),
 
     (req, res, next) => {

@@ -64,13 +64,14 @@ async function seed() {
 
                 nextBatchStart += BATCH_SIZE;
 
-                const size = Math.min(BATCH_SIZE, TOTAL_PRODUCTS - start);
+                const size = Math.min(
+                    BATCH_SIZE,
+                    TOTAL_PRODUCTS - start
+                );
 
                 const batch = generateProducts(size);
 
-                await Product.collection.insertMany(batch, {
-                    ordered: false
-                });
+                await Product.insertMany(batch);
 
                 console.log(`Worker ${id}: Inserted ${start + size}/${TOTAL_PRODUCTS}`);
             }

@@ -6,7 +6,6 @@ const cors = require("cors");
 const morgan = require("morgan");
 const app = express();
 
-app.use(morgan("dev"));
 
 connectDB();
 
@@ -15,9 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use(
-    morgan(":method :url :status :response-time ms ")
-);
+app.use(morgan(":method :url :status :response-time ms "));
 
 app.use(express.static(path.join(__dirname, "public")));
 

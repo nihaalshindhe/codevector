@@ -43,17 +43,7 @@
 <hr>
 
 <div id="products"></div>
-<input
-        type="text"
-        id="cursorInput"
-        placeholder="Enter cursor">
-<select id="directionInput">
-    <option value="next">next</option>
-    <option value="prev">prev</option>
-</select>
-<button id="testCursorBtn">
-    Test Cursor
-</button>
+
 <button id="prevBtn">
     Previous
 </button>
@@ -140,14 +130,7 @@
         }
 
     });
-    document.getElementById("testCursorBtn").addEventListener("click", () => {
 
-        const cursor = document.getElementById("cursorInput").value.trim();
-        const direction = document.getElementById("directionInput").value;
-
-        fetchProducts(cursor || null, direction);
-
-    });
 
 </script>
 

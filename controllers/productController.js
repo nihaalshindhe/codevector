@@ -1,32 +1,36 @@
 const Product = require("../models/Product");
 
+const encodeCursor = (product) =>
+    Buffer.from(
+        JSON.stringify({
+            createdAt: product.createdAt,
+            id: product._id
+        })
+    ).toString("base64");
+
 const getProducts = async (req, res) => {
     try {
         const category = Number(req.query.category);
         const limit = Math.min(Number(req.query.limit) || 10, 100);
-        const cursor = req.query.cursor;
         const direction = req.query.direction || "next";
+        const cursorData = req.cursorData;
 
         const query = { category };
 
-        if (cursor) {
-            const cursorDoc = await Product.findById(cursor).select("createdAt _id");
-
-            if (!cursorDoc) {
-                return res.status(400).json({error: "Invalid cursor"});
-            }
+        if (cursorData) {
+            const cursorDate = new Date(cursorData.createdAt);
 
             if (direction === "next") {
                 query.$or = [
                     {
                         createdAt: {
-                            $lt: cursorDoc.createdAt
+                            $lt: cursorDate
                         }
                     },
                     {
-                        createdAt: cursorDoc.createdAt,
+                        createdAt: cursorDate,
                         _id: {
-                            $lt: cursorDoc._id
+                            $lt: cursorData.id
                         }
                     }
                 ];
@@ -34,25 +38,27 @@ const getProducts = async (req, res) => {
                 query.$or = [
                     {
                         createdAt: {
-                            $gt: cursorDoc.createdAt
+                            $gt: cursorDate
                         }
                     },
                     {
-                        createdAt: cursorDoc.createdAt,
+                        createdAt: cursorDate,
                         _id: {
-                            $gt: cursorDoc._id
+                            $gt: cursorData.id
                         }
                     }
                 ];
             }
         }
 
-        let products = await Product.find(query).sort(
-            direction === "next"
-                ? { createdAt: -1, _id: -1 }
-                : { createdAt: 1, _id: 1 }
+        let products = await Product.find(query)
+            .sort(
+                direction === "next"
+                    ? { createdAt: -1, _id: -1 }
+                    : { createdAt: 1, _id: 1 }
             ).limit(limit + 1);
-        let hasExtra = products.length > limit;
+
+        const hasExtra = products.length > limit;
 
         if (hasExtra) {
             products.pop();
@@ -65,7 +71,7 @@ const getProducts = async (req, res) => {
         let hasNext = false;
         let hasPrev = false;
 
-        if (!cursor) {
+        if (!cursorData) {
             hasPrev = false;
             hasNext = hasExtra;
         } else if (direction === "next") {
@@ -76,20 +82,16 @@ const getProducts = async (req, res) => {
             hasPrev = hasExtra;
         }
 
-
         res.status(200).json({
             products,
-            nextCursor: hasNext && products.length ? products[products.length - 1]._id : null,
-            prevCursor: hasPrev && products.length ? products[0]._id : null,
+            nextCursor: hasNext && products.length ? encodeCursor(products[products.length - 1]) : null,
+            prevCursor: hasPrev && products.length ? encodeCursor(products[0]) : null,
             hasNext,
             hasPrev
         });
     } catch (err) {
         console.error(err);
-
-        res.status(500).json({
-            error: "Server error"
-        });
+        res.status(500).json({error: "Server error"});
     }
 };
 
